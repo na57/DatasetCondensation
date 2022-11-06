@@ -56,7 +56,7 @@ def main():
     data_save = []
 
 
-    for exp in range(args.num_exp):
+    for exp in range(args.num_exp): # num_exp 实验次数
         print('\n================== Exp %d ==================\n '%exp)
         print('Hyper-parameters: \n', args.__dict__)
         print('Evaluation model pool: ', model_eval_pool)
@@ -64,12 +64,21 @@ def main():
         ''' organize the real dataset '''
         images_all = []
         labels_all = []
+
+        # 生成 num_classes个[]
+        # num_classess 数据集的分类数
+        # 某类别所有样本在数据集中的索引,例如 indices_class[3] = [2,4,5,7]表示“在数据集中,第2,4,5,7个样本的类别是2”
         indices_class = [[] for c in range(num_classes)]
 
+        # 在样本的最前面扩展一个维度，例如: (C,W,H] => (B,C,W,H)
         images_all = [torch.unsqueeze(dst_train[i][0], dim=0) for i in range(len(dst_train))]
         labels_all = [dst_train[i][1] for i in range(len(dst_train))]
+
+        # 初始化类别样本索引
         for i, lab in enumerate(labels_all):
             indices_class[lab].append(i)
+        
+        # 合并数据集为一个tensor: (num_images,C,W,H)
         images_all = torch.cat(images_all, dim=0).to(args.device)
         labels_all = torch.tensor(labels_all, dtype=torch.long, device=args.device)
 
@@ -145,7 +154,7 @@ def main():
 
             ''' Train synthetic data '''
             net = get_network(args.model, channel, num_classes, im_size).to(args.device) # get a random model
-            net.train()
+            net.train() # 切换为训练模式
             net_parameters = list(net.parameters())
             optimizer_net = torch.optim.SGD(net.parameters(), lr=args.lr_net)  # optimizer_img for synthetic data
             optimizer_net.zero_grad()
